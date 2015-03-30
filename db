@@ -1,0 +1,29 @@
+FORUM:
+---------------
+CREATE TABLE `tp_db`.`forum` (
+  `id` INT NOT NULL AUTO_INCREMENT,
+  `name` VARCHAR(45) NULL,
+  `short_name` VARCHAR(45) NULL,
+  `user` VARCHAR(45) NULL,
+  PRIMARY KEY (`id`));
+---------------
+
+
+POST:
+
+
+THREAD:
+
+
+USER:
+    "about": "hello im user2",
+    "email": "example2@mail.ru",
+    "followers": [],
+    "following": [],
+    "id": 3,
+    "isAnonymous": false,
+    "name": "Jey",
+    "subscriptions": [],
+    "username": "user2"
+
+FOLLOW:

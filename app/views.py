@@ -7,12 +7,31 @@ def executeQuery(query):
 	g.db_conn.commit()
 	return cur
 
-
 @app.route('/')
-@app.route('/db/api')
+@app.route('/db/api', methods=['GET'])
 def index():
 	return 'Welcome to DB api!'
 
+@app.route('/db/api/status')
+def status():	
+	query = 'SELECT \
+			(SELECT COUNT(id) \
+			FROM user),\
+			(SELECT COUNT(id) \
+			FROM thread),\
+			(SELECT COUNT(id) \
+			FROM forum),\
+			(SELECT COUNT(id) \
+			FROM post)'
+						
+	cur = executeQuery(query)	
+	r = cur.fetchone()
+	return jsonify (code = 0, 	response = dict(
+								user = r[0],
+								thread = r[1],
+								forum = r[2],
+								post = r[3]
+								))
 
 @app.route('/db/api/clear')
 def clear():	
@@ -20,46 +39,3 @@ def clear():
 	executeQuery(query)	
 	return jsonify (code = 0, response = 'OK')
 
-
-############
-#forum
-
-@app.route('/db/api/forum/create')
-def forumCreate():	
-	name = request.args.get('name')
-	short_name = request.args.get('short_name')
-	user = request.args.get('user')	
-
-	if not name or not short_name or not user:
-		return jsonify(code = 3, response = 'Missing parameters')
-	query = "INSERT INTO forum (name, short_name, user) \
-			 VALUES ('%s', '%s', '%s')" \
-			 % (name, short_name, user) 
-	cur = executeQuery(query)
-	
-	return	jsonify(code = 0,	response = dict(
-									id = cur.lastrowid,	
-									name = name, 
-									short_name = short_name, 
-									user = user
-								))
-
-
-@app.route('/db/api/forum/details')
-def forumDetails():
-	forum = request.args.get('forum')	
-	if not forum:
-		return jsonify(code=3, response='Forum not specified')
-	related = request.args.getlist('related')
-	user = 0
-	'''
-	if 'user' in related:
-		user = 1
-
-	if user:
-		query = ""
-	else:
-		query = ""
-	'''
-	#query = ''
-	return 'ok'

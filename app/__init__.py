@@ -16,4 +16,4 @@ def db_connect():
 def db_disconnect(exception=None):
     g.db_conn.close()
 
-from app import views
+from app import views, viewsForum

@@ -53,7 +53,8 @@ CREATE TABLE `tp_db`.`user` (
   `about` VARCHAR(45) NULL,
   `isAnonymous` TINYINT NULL,
   `name` VARCHAR(45) NULL,
-  PRIMARY KEY (`id`));
+  PRIMARY KEY (`id`)),
+  UNIQUE KEY `email_UNIQUE` (`email`);
 ---------------
 
 --FOLLOW:

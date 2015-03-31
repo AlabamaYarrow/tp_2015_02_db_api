@@ -1,5 +1,7 @@
-from views import *
-
+from app import app
+from flask import g, request, jsonify
+import MySQLdb
+from utils import *
 
 @app.route('/db/api/forum/create')
 def forumCreate():	

@@ -3,11 +3,11 @@ from flask import g, request, jsonify
 from utils import *
 
 @app.route('/', methods=['GET'])
-@app.route('/db/api', methods=['GET'])
+@app.route('/db/api/', methods=['GET'])
 def index():
 	return 'Hello world!'
 
-@app.route('/db/api/status', methods=['GET'])
+@app.route('/db/api/status/', methods=['GET'])
 def status():	
 	query = 'SELECT \
 			(SELECT COUNT(id) \
@@ -28,7 +28,7 @@ def status():
 								post = r[3]
 								))
 
-@app.route('/db/api/clear', methods=['POST'])
+@app.route('/db/api/clear/', methods=['POST'])
 def clear():	
 	query = 'TRUNCATE TABLE user'
 	executeQuery(query)	

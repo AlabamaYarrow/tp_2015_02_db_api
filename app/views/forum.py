@@ -7,7 +7,6 @@ from user import getUserDict
 
 @app.route('/db/api/forum/create/', methods=['POST'])
 def forumCreate():	
-
 	dataJSON = request.get_json(force = True)	
 	try:		
 		name = dataJSON['name']
@@ -15,26 +14,26 @@ def forumCreate():
 		user = dataJSON['user']				
 	except KeyError:
 		return	jsonify(code = 3,	response = 'Missing parameters')
-
+		
 	try:
 		query = "INSERT INTO forum (name, short_name, user) \
-				 VALUES ('%s', '%s', '%s')" \
-				 % (name, short_name, user) 
-		cur = executeQuery(query)
+				 VALUES (%s, %s, %s)" 
+		data = (name, short_name, user) 
+		cur = executeQueryData(query, data)
 		id = cur.lastrowid
 	except MySQLdb.IntegrityError: 
 		query = "SELECT id FROM forum \
-				WHERE name='%s' OR short_name='%s'" \
-				 % (name, short_name) 
-		row = executeQuery(query).fetchone()
+				WHERE name=%s OR short_name=%s"
+		data = (name, short_name) 
+		row = executeQueryData(query, data).fetchone()
 		id = row[0]
 	
-	return	jsonify(code = 0,	response = dict(
-									id = id,	
-									name = name, 
-									short_name = short_name, 
-									user = user
-								))
+	return	jsonify(code = 0,	response = 	dict(
+												id = id,	
+												name = name, 
+												short_name = short_name, 
+												user = user
+											))
 
 
 @app.route('/db/api/forum/details/', methods=['GET'])
@@ -42,14 +41,16 @@ def forumDetails():
 	forum = request.args.get('forum')	
 	if not forum:
 		return jsonify(code=3, response='Forum not specified')
+
 	related = request.args.getlist('related')
 	query = "SELECT id,name,short_name,user \
 			 FROM forum \
-			 WHERE short_name = '%s'" \
-			 % (forum)
-	row = executeQuery(query).fetchone()
+			 WHERE short_name = %s" 
+	data = (forum,)
+	row = executeQueryData(query,data).fetchone()
 	if not row:
 		return	jsonify(code = 1, response = 'Not found')
+
 	response = 	dict(
 					id = row[0],	
 					name = row[1], 

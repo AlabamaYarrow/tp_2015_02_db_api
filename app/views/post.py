@@ -7,42 +7,38 @@ from utils import *
 @app.route('/db/api/post/create/', methods=['POST'])
 def postCreate():	
 	dataJSON = request.get_json(force = True)	
-	try:		
+	try:
 		date = dataJSON['date']
-		thread = dataJSON['thread'] 	
+		thread = dataJSON['thread']
 		message = dataJSON['message']
-		user = dataJSON['user'] 		
-		forum = dataJSON['forum']		
+		user = dataJSON['user']
+		forum = dataJSON['forum']
 	except KeyError:
 		return	jsonify(code = 3,	response = 'Missing parameters')
+
 	parent = dataJSON.get('parent', None)
 	isApproved = dataJSON.get('isApproved', False)
 	isHighlighted = dataJSON.get('isHighlighted', False)
 	isEdited = dataJSON.get('isEdited', False)
 	isSpam = dataJSON.get('isSpam', False)
 	isDeleted = dataJSON.get('isDeleted', False)
+
 	try:		
 		query = "INSERT INTO post (date, thread, message, user, forum, parent, \
 									isApproved, isHighlighted, isEdited, isSpam, isDeleted) \
 				 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)" 
-		
-		cur = g.db_conn.cursor() 
-		cur.execute(query, (date, thread, message, user, forum, parent, \
-				int(isApproved), int(isHighlighted), int(isEdited), int(isSpam), int(isDeleted)) )
-		g.db_conn.commit()
-		
+		data = (date, thread, message, user, forum, parent, \
+				int(isApproved), int(isHighlighted), int(isEdited), int(isSpam), int(isDeleted))
+		cur = executeQueryData(query, data)
 		id = cur.lastrowid
-
 	except MySQLdb.IntegrityError: 
 		query = "SELECT id FROM post \
-				WHERE name='%s' OR short_name='%s'" \
-				 % (name, short_name) 
-		#row = executeQuery(query).fetchone()
-		#id = row[0]
+				WHERE ... " 
+		#???
 
 	return	jsonify(code = 0,	response = dict(
 									date = date,
-									forum = forum,									
+									forum = forum,
 									id = id,	
 									isApproved = isApproved,
 									isDeleted = isDeleted,
@@ -68,27 +64,26 @@ def postDetails():
 			 		isSpam, message, parent,\
 			 		thread, forum, user \
 			 FROM post \
-			 WHERE id = '%s'" \
-			 % (post)
-
-	row = executeQuery(query).fetchone()
+			 WHERE id = %s" 
+	data = (post,)
+	row = executeQueryData(query, data).fetchone()
 	if not row:
 		return	jsonify(code = 1, response = 'Not found')
+
 	response = 	dict(					
-					date = row[0].strftime("%Y-%m-%d %H:%M:%S"),																			
-					isApproved = bool(row[1]),					
+					date = row[0].strftime("%Y-%m-%d %H:%M:%S"), # slow?
+					isApproved = bool(row[1]),
 					isDeleted = bool(row[2]),
 					isEdited = bool(row[3]),
 					isHighlighted = bool(row[4]),
 					isSpam = bool(row[5]),
 					message = row[6],
-					parent = row[7],										
+					parent = row[7],
 					id = int(post),
 					likes = 0,
 					dislikes = 0,
 					points = 0
-				)
-	
+				)	
 	if 'thread' in related:
 		response['thread'] = row[8]
 	if 'forum' in related:
@@ -96,7 +91,7 @@ def postDetails():
 	if 'user' in related:
 		response['user'] = row[10]
 
-	return	jsonify(code = 0,	response = verifyJSON(response))
+	return	jsonify(code = 0,	response = response)
 
 
 

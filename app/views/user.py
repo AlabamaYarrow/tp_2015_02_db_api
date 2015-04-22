@@ -14,18 +14,16 @@ def userCreate():
 		username = dataJSON['username']
 		email = dataJSON['email']	
 		isAnonymous = dataJSON.get('isAnonymous', False) 
-
 	except KeyError:
 		return	jsonify(code = 3,	response = 'Missing parameters')
 	
 	try:
 		query = "INSERT INTO user (name, about, username, email, isAnonymous) \
-				 VALUES ('%s', '%s', '%s', '%s', '%s')" \
-				 % (name, about, username, email, int(isAnonymous)) 
-		cur = executeQuery(query)
+				 VALUES (%s, %s, %s, %s, %s)" 
+		data = (name, about, username, email, int(isAnonymous)) 
+		cur = executeQueryData(query, data)
 	except MySQLdb.IntegrityError: 
 		return jsonify(code = 5, response = 'User exists')
-
 
 	return	jsonify(code = 0,	response = dict(
 									id = cur.lastrowid,	
@@ -41,30 +39,32 @@ def userDetails():
 	try:		
 		user = request.args.get('user')
 	except KeyError:
-		return	jsonify(code = 3,	response = 'Missing parameters')
+		return	jsonify(code = 3,	response = 'User not specified')
 
 	response = getUserDict(user)
 	if response == 'Not Found':
 		return jsonify(code = 1, response = response)
+		
 	return	jsonify(code = 0, response = response)
-	
+
 def getUserDict(user):
 	query = "SELECT id, email, username, name, isAnonymous, about \
 			 FROM user \
-			 WHERE email = '%s'" \
-			 % (user) 
-	cur = executeQuery(query)
+			 WHERE email = %s" 
+	data = (user,)
+	cur = executeQueryData(query, data)
 	row = cur.fetchone()
 	if not row:
-		return 'Not found'	
-	return verifyJSON({
-				'about' : row[5],
+		return 'Not found'
+
+	return {
+				'id' : row[0],
 				'email' : row[1],
+				'username' : row[2],
+				'name' : row[3],
+				'isAnonymous' : bool(row[4]),
+				'about' : row[5],				
 				'followers' : [],
 				'following' : [],
-				'id' : row[0],
-				'isAnonymous' : bool(row[4]),									
-				'name' : row[3],
-				'subscriptions' : [],
-				'username' : row[2]
-			})
+				'subscriptions' : []				
+			}

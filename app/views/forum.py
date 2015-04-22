@@ -61,30 +61,6 @@ def forumDetails():
 		response['user'] = userDict
 
 	return	jsonify(code = 0,	response = response)
-	'''	
-	{
-	    "code": 0,
-	    "response": {
-	        "id": 4,
-	        "name": "\u0424\u043e\u0440\u0443\u043c \u0422\u0440\u0438",
-	        "short_name": "forum3",
-	        "user": {
-	            "about": "hello im user2",
-	            "email": "example2@mail.ru",
-	            "followers": [],
-	            "following": [],
-	            "id": 3,
-	            "isAnonymous": false,
-	            "name": "Jey",
-	            "subscriptions": [],
-	            "username": "user2"
-	        }
-	    }
-	}
-	'''
-
-
-
 
 @app.route('/db/api/forum/listThreads/')
 def forumListThreads():

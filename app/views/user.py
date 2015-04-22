@@ -1,6 +1,7 @@
 from app import app
 from flask import g, request, jsonify
 import MySQLdb
+import json
 from utils import *
 
 
@@ -46,9 +47,7 @@ def userDetails():
 	if response == 'Not Found':
 		return jsonify(code = 1, response = response)
 	return	jsonify(code = 0, response = response)
-
-
-
+	
 def getUserDict(user):
 	query = "SELECT id, email, username, name, isAnonymous, about \
 			 FROM user \
@@ -57,31 +56,15 @@ def getUserDict(user):
 	cur = executeQuery(query)
 	row = cur.fetchone()
 	if not row:
-		return 'Not found'
-	return	dict(
-				about = row[5],
-				email = row[1],
-				followers = [],
-				following = [],
-				id = row[0],
-				isAnonymous = bool(row[4]),									
-				name = row[3],
-				subscriptions = [],
-				username = row[2]
-				)
-
-
-	
-	
-
-
-
-
-
-
-
-
-
-
-
-	
+		return 'Not found'	
+	return verifyJSON({
+				'about' : row[5],
+				'email' : row[1],
+				'followers' : [],
+				'following' : [],
+				'id' : row[0],
+				'isAnonymous' : bool(row[4]),									
+				'name' : row[3],
+				'subscriptions' : [],
+				'username' : row[2]
+			})

@@ -48,7 +48,6 @@ def userCreate():
 	}
 
 	headers = {'Content-type': 'application/json', 'Accept': 'text/plain'}
-	#print json.dumps(data)
 	r = requests.post(url, data=json.dumps(data), headers=headers)	
 	print r.status_code
 	print r.json()	

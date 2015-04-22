@@ -1,10 +1,10 @@
-'''
-ALTER DATABASE tp_db DEFAULT COLLATE utf8_general_ci; 
-ALTER TABLE [tablename] CONVERT TO CHARACTER SET utf8
-'''
 
---FORUM:
----------------
+DROP TABLE `tp_db`.`user`;
+DROP TABLE `tp_db`.`forum`;
+DROP TABLE `tp_db`.`thread`;
+DROP TABLE `tp_db`.`post`;
+
+
 CREATE TABLE `tp_db`.`forum` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NULL,
@@ -13,33 +13,25 @@ CREATE TABLE `tp_db`.`forum` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_UNIQUE` (`name`),
   UNIQUE KEY `short_name_UNIQUE` (`short_name`))
-  CHARACTER SET utf8 COLLATE utf8_general_ci;
+  DEFAULT CHARSET=utf8;
 
----------------
-
-
---POST:
----------------
 CREATE TABLE `tp_db`.`post` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `forum` VARCHAR(45) NULL,
   `date` DATETIME NULL,
-  `isApproved` VARCHAR(45) NULL,
-  `isDeleted` VARCHAR(45) NULL,
-  `isEdited` VARCHAR(45) NULL,
-  `isHighlighted` VARCHAR(45) NULL,
-  `isSpam` VARCHAR(45) NULL,
+  `isApproved` TINYINT NULL,
+  `isDeleted` TINYINT NULL,
+  `isEdited` TINYINT NULL,
+  `isHighlighted` TINYINT NULL,
+  `isSpam` TINYINT NULL,
   `message` TEXT NULL,
-  `parent` VARCHAR(45) NULL,
+  `parent` INT NULL,
   `thread` INT NULL,
   `user` VARCHAR(45) NULL,
   PRIMARY KEY (`id`))
-  CHARACTER SET utf8 COLLATE utf8_general_ci;
----------------
+  DEFAULT CHARSET=utf8;
+ 
 
-
---THREAD:
----------------
 CREATE TABLE `tp_db`.`thread` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `date` DATETIME NULL,
@@ -51,12 +43,9 @@ CREATE TABLE `tp_db`.`thread` (
   `title` TEXT NULL,
   `user` VARCHAR(45) NULL,
   PRIMARY KEY (`id`))
-  CHARACTER SET utf8 COLLATE utf8_general_ci;
----------------
+  DEFAULT CHARSET=utf8;
 
 
---USER:
----------------
 CREATE TABLE `tp_db`.`user` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `email` VARCHAR(45) NULL,
@@ -64,9 +53,7 @@ CREATE TABLE `tp_db`.`user` (
   `about` TEXT NULL,
   `isAnonymous` TINYINT NULL,
   `name` VARCHAR(45) NULL,
-  PRIMARY KEY (`id`)),
-  UNIQUE KEY `email_UNIQUE` (`email`)
-  CHARACTER SET utf8 COLLATE utf8_general_ci;
----------------
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email_UNIQUE` (`email`))
+  DEFAULT CHARSET=utf8;
 
---FOLLOW:

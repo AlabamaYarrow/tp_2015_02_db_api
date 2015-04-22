@@ -13,9 +13,9 @@ def db_connect():
 					db=settings.DB_NAME)    
 	g.db_conn.set_character_set('utf8')
 	cur = g.db_conn.cursor()
-	cur.execute('SET NAMES utf8;') 
-	cur.execute('SET CHARACTER SET utf8;')
-	cur.execute('SET character_set_connection=utf8;')
+	#cur.execute('SET NAMES utf8;') 
+	#cur.execute('SET CHARACTER SET utf8;')
+	#cur.execute('SET character_set_connection=utf8;')
 	
 
 

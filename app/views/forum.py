@@ -14,7 +14,7 @@ def forumCreate():
 		user = dataJSON['user']				
 	except KeyError:
 		return	jsonify(code = 3,	response = 'Missing parameters')
-		
+
 	try:
 		query = "INSERT INTO forum (name, short_name, user) \
 				 VALUES (%s, %s, %s)" 
@@ -63,9 +63,31 @@ def forumDetails():
 
 	return	jsonify(code = 0,	response = response)
 
-@app.route('/db/api/forum/listThreads/')
+
+@app.route('/db/api/forum/listThreads/', methods=['GET'])
 def forumListThreads():
-	return 'ok'
+	forum = request.args.get('forum')
+	if not forum:
+		return	jsonify(code = 3,	response = 'Missing parameters')		
+	since = request.args.get('since', '')
+	limit = request.args.get('limit', -1)
+	order = request.args.get('order', 'desc')
+	related = request.args.getlist('related')
+
+	threads = getThreads(forum=forum, since=since, order=order, limit=limit)
+
+	for thread in threads:
+		if 'user' in related:
+			thread['user'] = getUserDict(thread['user'])
+			thread['user']['followers'] = getFollowersList(thread['user']['email'])
+			thread['user']['following'] = getFollowingList(thread['user']['email'])
+			thread['user']['subscriptions'] = getSubscribedThreadsList(thread['user']['email'])
+
+		if 'forum' in related:
+			thread['forum'] = get_forum_dict(short_name=thread['forum'])
+
+
+	return	jsonify(code = 0,	response = threads)
 
 @app.route('/db/api/forum/listPosts/')
 def forumListPosts():

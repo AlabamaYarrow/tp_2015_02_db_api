@@ -52,6 +52,15 @@ def threadDetails():
 	if not thread:
 		return jsonify(code=3, response='Thread not specified')	
 	related = request.args.getlist('related')
+	forumInRelated = False
+	userInRelated = False
+	for relatedValue in related:
+		if relatedValue == 'forum':
+			forumInRelated = True
+		elif relatedValue == 'user':
+			userInRelated = True
+		else:
+			return	jsonify(code = 3, response = 'Incorrect request')
 
 	query = "SELECT date, isClosed, isDeleted, \
 					message, slug, title, forum, user \
@@ -76,11 +85,15 @@ def threadDetails():
 					title = row[5]
 				)	
 	print response
-	if 'forum' in related:
+	
+	response['forum'] = row[6]
+	response['user'] = row[7]
+	'''
+	if forumInRelated:
 		response['forum'] = row[6]
-	if 'user' in related:
+	if userInRelated:
 		response['user'] = row[7]
-
+	'''
 	return	jsonify(code = 0,	response = response)
 
 

@@ -47,24 +47,3 @@ def userDetails():
 		
 	return	jsonify(code = 0, response = response)
 
-def getUserDict(user):
-	query = "SELECT id, email, username, name, isAnonymous, about \
-			 FROM user \
-			 WHERE email = %s" 
-	data = (user,)
-	cur = executeQueryData(query, data)
-	row = cur.fetchone()
-	if not row:
-		return 'Not found'
-
-	return {
-				'id' : row[0],
-				'email' : row[1],
-				'username' : row[2],
-				'name' : row[3],
-				'isAnonymous' : bool(row[4]),
-				'about' : row[5],				
-				'followers' : [],
-				'following' : [],
-				'subscriptions' : []				
-			}

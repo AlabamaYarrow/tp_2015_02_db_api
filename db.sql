@@ -1,8 +1,9 @@
-
-DROP TABLE `tp_db`.`user`;
-DROP TABLE `tp_db`.`forum`;
-DROP TABLE `tp_db`.`thread`;
-DROP TABLE `tp_db`.`post`;
+DROP TABLE IF EXISTS `tp_db`.`user`;
+DROP TABLE IF EXISTS `tp_db`.`forum`;
+DROP TABLE IF EXISTS `tp_db`.`thread`;
+DROP TABLE IF EXISTS `tp_db`.`post`;
+DROP TABLE IF EXISTS `tp_db`.`follower`;
+DROP TABLE IF EXISTS `tp_db`.`subscription`;
 
 
 CREATE TABLE `tp_db`.`forum` (
@@ -25,6 +26,9 @@ CREATE TABLE `tp_db`.`post` (
   `isHighlighted` TINYINT NULL,
   `isSpam` TINYINT NULL,
   `message` TEXT NULL,
+  `likes` INT NULL DEFAULT 0,
+  `dislikes` INT NULL DEFAULT 0,
+  `points` INT NULL DEFAULT 0,
   `parent` INT NULL,
   `thread` INT NULL,
   `user` VARCHAR(45) NULL,
@@ -42,6 +46,10 @@ CREATE TABLE `tp_db`.`thread` (
   `slug` TEXT NULL,
   `title` TEXT NULL,
   `user` VARCHAR(45) NULL,
+  `likes` INT NULL DEFAULT 0,
+  `dislikes` INT NULL DEFAULT 0,
+  `points` INT NULL DEFAULT 0,
+  `posts` INT NULL DEFAULT 0,
   PRIMARY KEY (`id`))
   DEFAULT CHARSET=utf8;
 
@@ -57,3 +65,14 @@ CREATE TABLE `tp_db`.`user` (
   UNIQUE KEY `email_UNIQUE` (`email`))
   DEFAULT CHARSET=utf8;
 
+
+CREATE TABLE `tp_db`.`follower` (
+  `follower` VARCHAR(45) NULL,
+  `following` VARCHAR(45) NULL
+) DEFAULT CHARSET=utf8;
+
+
+CREATE TABLE `tp_db`.`subscription` (
+  `subscriber` VARCHAR(45) NULL,
+  `thread` INT NULL 
+) DEFAULT CHARSET=utf8;

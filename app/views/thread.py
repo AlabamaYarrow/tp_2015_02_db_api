@@ -62,8 +62,8 @@ def threadDetails():
 		else:
 			return	jsonify(code = 3, response = 'Incorrect request')
 
-	query = "SELECT date, isClosed, isDeleted, \
-					message, slug, title, forum, user \
+	query = "SELECT date, dislikes, isClosed, isDeleted, likes, \
+					message, points, posts, slug, title, forum, user \
 			 FROM thread \
 			 WHERE id = %s" 
 	data = (thread,)
@@ -73,21 +73,21 @@ def threadDetails():
 
 	response = 	dict(					
 					date = row[0].strftime("%Y-%m-%d %H:%M:%S"), # slow?
-					dislikes = 0,
+					dislikes = int(row[1]),
 					id = int(thread),
-					isClosed = bool(row[1]),
-					isDeleted = bool(row[2]),
-					likes = 0,
-					message = row[3],
-					points = 0,										
-					posts = 0,
-					slug = row[4],
-					title = row[5]
+					isClosed = bool(row[2]),
+					isDeleted = bool(row[3]),
+					likes = int(row[4]),
+					message = row[5],
+					points = int(row[6]),										
+					posts = int(row[7]),
+					slug = row[8],
+					title = row[9]
 				)	
 	print response
 	
-	response['forum'] = row[6]
-	response['user'] = row[7]
+	response['forum'] = row[10]
+	response['user'] = row[11]
 	'''
 	if forumInRelated:
 		response['forum'] = row[6]
@@ -97,8 +97,32 @@ def threadDetails():
 	return	jsonify(code = 0,	response = response)
 
 
+@app.route('/db/api/thread/list/', methods=['GET'])
+def threadList():
+	forum = request.args.get('forum') 
+	user = request.args.get('user')
+	if not forum and not user:
+		return jsonify(code = 3, response = 'Missing parameters')
 
+	since = request.args.get('since', '')
+	order = request.args.get('order', '')
+	limit = request.args.get('limit', -1)
 
+	if request.args.get('forum'):
+		threads = getThreads(forum=forum, since=since, order=order, limit=limit)
+	else:
+		threads = getThreads(user=user, since=since, order=order, limit=limit)
+
+	response = threads
+	if response == None:
+		response = []
+	return jsonify(code = 0, response = response)
+
+@app.route('/db/api/thread/listPosts/', methods=['GET'])
+def threadListPosts():
+	
+	response = []
+	return jsonify(code = 0, response = response)	
 
 
 

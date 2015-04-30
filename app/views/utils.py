@@ -14,8 +14,6 @@ def executeQueryData(query, data):
 	return cur
 
 
-
-
 def getFollowersList(email):
 	query = """SELECT follower FROM follower WHERE following = %s;"""
 	data = (email,)
@@ -44,7 +42,6 @@ def getFollowingList(email):
 
 def getPostList(user="", forum="", thread="", postId="", since="", limit=-1, sort='flat', \
                   order='desc', date=""):
-	print 'HELLOOOO'
 	if postId != "":
 		whereCond = " id = {}".format(postId)
 	elif forum != "":
@@ -148,66 +145,74 @@ def getSubscribedThreadsList(email):
 
 
 def getThreads(threadId = "", title = "", forum = "", user = "", since = "", limit = -1, order = "desc"):
-    if threadId != "":
-        whereCond = "thread = {}".format(threadId)
-    elif title != "":
-        whereCond = "title = '{}'".format(title)
-    elif forum != "":
-        whereCond = "forum = '{}'".format(forum)
-    elif user != "":
-        whereCond = "user = '{}'".format(user)
-        return list()
+	if threadId != "":
+		whereCond = "thread = {}".format(threadId)
+	elif title != "":
+		whereCond = "title = '{}'".format(title)
+	elif forum != "":
+		whereCond = "forum = '{}'".format(forum)
+	elif user != "":
+		whereCond = "user = '{}'".format(user)
+		return list()
 
-    sinceCond = ""
-    if since != "":
-        sinceCond = """ AND date >= '{}'""".format(since)
+	sinceCond = ""
+	if since != "":
+		sinceCond = """ AND date >= '{}'""".format(since)
 
-    if order != 'asc' and order != 'desc':
-        return list()
-    orderCond = """ ORDER BY date {}""".format(order)
+	if order != 'asc' and order != 'desc':
+		return list()
+	orderCond = """ ORDER BY date {}""".format(order)
 
-    limitCond = ""
-    if limit != -1:
-        try:
-            limit = int(limit)
-        except ValueError:
-            return list()
-        if limit < 0:
-            return list()
-        limitCond = """ LIMIT {}""".format( int(limit) )
+	limitCond = ""
+	if limit != -1:
+		try:
+			limit = int(limit)
+		except ValueError:
+			return list()
+		if limit < 0:
+			return list()
+		limitCond = """ LIMIT {}""".format( int(limit) )
+	'''
+	query = "SELECT id, title, user, message, \
+			 forum, isDeleted, isClosed, date, slug, \
+			 likes, dislikes, \
+			 points, posts \
+			 FROM thread \
+			 WHERE %s %s %s %s;"
+	data = (whereCond, sinceCond, orderCond, limitCond)
+	rows = executeQueryData(query, data).fetchall()
+	'''
+	query = "SELECT id, title, user, message, \
+			 forum, isDeleted, isClosed, date, slug, \
+			 likes, dislikes, \
+			 points, posts \
+			 FROM thread \
+			 WHERE %s %s %s %s;" % (whereCond, sinceCond, orderCond, limitCond)
+	rows = executeQuery(query).fetchall()
 
-    query = "SELECT id, title, user, message, \
-    		 forum, isDeleted, isClosed, date, slug, \
-    		 likes, dislikes, \
-        	 points, posts \
-        	 FROM thread \
-        	 WHERE %s %s %s %s;"
-    data = (whereCond, sinceCond, orderCond, limitCond)
+	if not rows:
+		return list()
 
-    rows = executeQueryData(query, data).fetchall()
-    if not rows:
-        return list()
+	threads = list()
+	for row in rows:
+		thread = dict()
+		thread['id'] = int(row[0])
+		thread['title'] = row[1]
+		thread['user'] = row[2]
+		thread['message'] = row[3]
+		thread['forum'] = row[4]
+		thread['isDeleted'] = bool(row[5])
+		thread['isClosed'] = bool(row[6])
+		thread['date'] = row[7].strftime('%Y-%m-%d %H:%M:%S')
+		thread['slug'] = row[8]
+		thread['likes'] = row[9]
+		thread['dislikes'] = row[10]
+		thread['points'] = row[11]
+		thread['posts'] = row[12]
 
-    threads = list()
-    for row in rows:
-        thread = dict()
-        thread['id'] = int(row[0])
-        thread['title'] = row[1]
-        thread['user'] = row[2]
-        thread['message'] = row[3]
-        thread['forum'] = row[4]
-        thread['isDeleted'] = bool(row[5])
-        thread['isClosed'] = bool(row[6])
-        thread['date'] = row[7].strftime('%Y-%m-%d %H:%M:%S')
-        thread['slug'] = row[8]
-        thread['likes'] = row[9]
-        thread['dislikes'] = row[10]
-        thread['points'] = row[11]
-        thread['posts'] = row[12]
+		threads.append(thread)
 
-        threads.append(thread)
-
-    return threads
+	return threads
 
 
 def getUserDict(user):

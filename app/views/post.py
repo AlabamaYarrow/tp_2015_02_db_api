@@ -65,6 +65,7 @@ def postDetails():
 	query = "SELECT date, isApproved, isDeleted, \
 					isEdited, isHighlighted, \
 			 		isSpam, message, parent,\
+			 		likes, dislikes, points,\
 			 		thread, forum, user \
 			 FROM post \
 			 WHERE id = %s" 
@@ -83,13 +84,13 @@ def postDetails():
 					message = row[6],
 					parent = row[7],
 					id = int(post),
-					likes = 0,
-					dislikes = 0,
-					points = 0
+					likes = int(row[8]),
+					dislikes = int(row[9]),
+					points = int(row[10])
 				)	
-	response['thread'] = row[8]
-	response['forum'] = row[9]
-	response['user'] = row[10]
+	response['thread'] = row[11]
+	response['forum'] = row[12]
+	response['user'] = row[13]
 	'''
 	if 'thread' in related:
 		response['thread'] = row[8]
@@ -106,7 +107,7 @@ def listPosts():
 	forum = request.args.get('forum')
 	thread = request.args.get('thread')
 	if not forum and not thread:
-		return jsonify(code = 3, response = 'Incorrect response')
+		return jsonify(code = 3, response = 'Missing parameters')
 
 	since = request.args.get('since', '')
 	limit = request.args.get('limit', -1)
@@ -124,7 +125,7 @@ def listPosts():
 
 
 @app.route('/db/api/post/remove/', methods=['POST'])
-def removePost():
+def postRemove():
 	dataJSON = request.get_json(force = True)	
 	try:
 		postId = dataJSON['post']		
@@ -132,7 +133,6 @@ def removePost():
 		return	jsonify(code = 3,	response = 'Missing parameters')
 	post = getPostList(postId = postId)[0]
 	threadId = post['thread']
-
 
 	query = """UPDATE post SET isDeleted = 1 WHERE id = %s;"""
 	data = (postId,)
@@ -143,13 +143,75 @@ def removePost():
 	return jsonify(code = 0, response = {"post": postId})
 
 
+@app.route('/db/api/post/restore/', methods=['POST'])
+def postRestore():
+	dataJSON = request.get_json(force = True)	
+	try:
+		postId = dataJSON['post']		
+	except KeyError:
+		return	jsonify(code = 3,	response = 'Missing parameters')
+	post = getPostList(postId = postId)[0]
+	threadId = post['thread']
+
+	query = """UPDATE post SET isDeleted = 0 WHERE id = %s;"""
+	data = (postId,)
+	executeQueryData(query, data)
+
+	postsInThreadIncrement(threadId)
+
+	return jsonify(code = 0, response = {"post": postId})
 
 
 
+@app.route('/db/api/post/update/', methods=['POST'])
+def postUpdate():
+	dataJSON = request.get_json(force = True)	
+	try:
+		postId = dataJSON['post']
+		message = dataJSON['message']
+	except KeyError:
+		return	jsonify(code = 3,	response = 'Missing parameters')
+
+	query = """UPDATE post SET message = %s WHERE id = %s;"""
+	data = (message, postId)
+
+	executeQueryData(query,data)
+
+	posts = getPostList(postId = postId)
+	if not posts:
+		return jsonify(code = 1, response = [])
+	elif not posts[0]:
+		return jsonify(code = 1, response = [])
+
+	return jsonify(code = 0, response = posts[0])
 
 
+@app.route('/db/api/post/vote/', methods=['POST'])
+def postVote():
+	dataJSON = request.get_json()
+	try:
+		postId = dataJSON['post']
+		vote = dataJSON['vote']
+	except KeyError:
+		return jsonify(code = 3, response = 'Missing parameters')
 
+	if vote == 1:
+		query = """UPDATE post SET likes = likes + 1, points = points + 1 WHERE id = %s;"""
+	elif vote == -1:
+		query = """UPDATE post SET dislikes = dislikes + 1, points = points - 1 WHERE id = %s;"""
+	else:
+		return jsonify(code =  3, response = 'Incorrect vote')
 
+	data = (postId,)
+	executeQueryData(query, data)
+
+	posts = getPostList(postId = postId)
+	if not posts:
+		return jsonify(code = 1, response = [])
+	elif not posts[0]:
+		return jsonify(code = 1, response = [])
+
+	return jsonify(code = 0, response = posts[0])
 
 
 

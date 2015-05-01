@@ -128,25 +128,9 @@ def getPostList(user="", forum="", thread="", postId="", since="", limit=-1, sor
 	return posts
 
 
-
-def getSubscribedThreadsList(email):
-	query = """SELECT thread \ 
-				FROM Subscription \
-				WHERE subscriber = %s;"""
-	data = (email,)
-
-	rows = executeQueryData(query, data)
-
-	result = list()
-	for row in rows:
-		result.append(row[0])
-
-	return result
-
-
 def getThreads(threadId = "", title = "", forum = "", user = "", since = "", limit = -1, order = "desc"):
 	if threadId != "":
-		whereCond = "thread = {}".format(threadId)
+		whereCond = "id = {}".format(threadId)
 	elif title != "":
 		whereCond = "title = '{}'".format(title)
 	elif forum != "":
@@ -243,7 +227,37 @@ def postsInThreadIncrement(threadId):
 	data = (threadId,)
 	executeQueryData(query, data)
 
+
 def postsInThreadDecrement(threadId):
 	query = """UPDATE thread SET posts = posts - 1 WHERE id = %s;"""
 	data = (threadId,)
 	executeQueryData(query, data)
+
+
+def getFollowerList(user):
+	query = """SELECT follower FROM follower WHERE following = %s;"""
+	data = (user,)
+	rows = executeQueryData(query, data).fetchall()
+	if not rows:
+		return list()
+	return rows[0]
+
+
+def getFollowingList(user):
+	query = """SELECT following FROM follower WHERE follower = %s;"""
+	data = (user,)
+	rows = executeQueryData(query, data).fetchall()
+	if not rows:
+		return list()
+	return rows[0]
+
+
+def getSubscribedThreadsList(user):
+	query = "SELECT thread FROM subscription WHERE subscriber = %s;"
+	data = (user,)
+	rows = executeQueryData(query, data)
+	threads = list()
+	for row in rows:
+		threads.append(row[0])
+
+	return threads

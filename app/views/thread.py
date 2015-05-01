@@ -3,6 +3,8 @@ from flask import g, request, jsonify
 import MySQLdb
 from utils import *
 
+from post import postRemove, postRestore
+
 
 @app.route('/db/api/thread/create/', methods=['POST'])
 def threadCreate():	
@@ -118,13 +120,170 @@ def threadList():
 		response = []
 	return jsonify(code = 0, response = response)
 
+
 @app.route('/db/api/thread/listPosts/', methods=['GET'])
 def threadListPosts():
-	
-	response = []
+	thread = request.args.get('thread')
+	since = request.args.get('since', '')
+	limit = request.args.get('limit', -1)
+	order = request.args.get('order', 'desc')
+	sort = request.args.get('sort', 'flat')
+
+	posts = getPostList(thread=thread, since=since, limit=limit, sort=sort, order=order)
+	response = posts
+	if response == None:
+		response = []	
+
 	return jsonify(code = 0, response = response)	
 
 
+@app.route('/db/api/thread/remove/', methods=['POST'])
+def threadRemove():
+	dataJSON = request.get_json()	
+	try:
+		threadId = dataJSON['thread']
+	except KeyError:
+		return jsonify(code = 3, response = 'Missing parameters')
 
+	query = """UPDATE thread SET isDeleted = 1 WHERE id = %s;""" 
+	data = (threadId,)
+	executeQueryData(query, data)
+
+	posts = getPostList(thread = threadId)
+	for post in posts:
+		postRemove(post['id'])
+
+	return jsonify(code = 0, response = threadId)
+
+@app.route('/db/api/thread/restore/', methods=['POST'])
+def threadRestore():
+	dataJSON = request.get_json()	
+	try:
+		threadId = dataJSON['thread']
+	except KeyError:
+		return jsonify(code = 3, response = 'Missing parameters')
+
+	query = """UPDATE thread SET isDeleted = 0 WHERE id = %s;""" 
+	data = (threadId,)
+	executeQueryData(query, data)
+
+	posts = getPostList(thread = threadId)
+	for post in posts:
+		postRestore(post['id'])
+
+	return jsonify(code = 0, response = threadId)
+
+
+@app.route('/db/api/thread/close/', methods=['POST'])
+def threadClose():
+	dataJSON = request.get_json()	
+	try:
+		threadId = dataJSON['thread']
+	except KeyError:
+		return jsonify(code = 3, response = 'Missing parameters')	
+
+	query = """UPDATE thread SET isClosed = 1 WHERE id = %s;"""
+	data = (threadId,)
+	executeQueryData(query, data)
+
+	return jsonify(code = 0, response = threadId)
+
+
+@app.route('/db/api/thread/open/', methods=['POST'])
+def threadOpen():
+	dataJSON = request.get_json()	
+	try:
+		threadId = dataJSON['thread']
+	except KeyError:
+		return jsonify(code = 3, response = 'Missing parameters')	
+
+	query = """UPDATE thread SET isClosed = 0 WHERE id = %s;"""
+	data = (threadId,)
+	executeQueryData(query, data)
+
+	return jsonify(code = 0, response = threadId)
+
+
+@app.route('/db/api/thread/update/', methods=['POST'])
+def threadUpdate():
+	dataJSON = request.get_json()	
+	try:
+		threadId = dataJSON['thread']
+		message = dataJSON['message']
+		slug = dataJSON['slug']
+	except KeyError:
+		return jsonify(code = 3, response = 'Missing parameters')	
+
+	query = """UPDATE thread SET message = %s, slug = %s WHERE id = %s;"""
+	data = (message, slug, threadId)
+	executeQueryData(query,data)
+
+	threads = getThreads(threadId=threadId)
+	if threads != list():
+		thread = threads[0]
+	else:
+		thread = dict()
+
+	return jsonify(code = 0, response = thread)
+
+
+@app.route('/db/api/thread/vote/', methods=['POST'])
+def threadVote():
+	dataJSON = request.get_json()	
+	try:
+		threadId = dataJSON['thread']
+		vote = dataJSON['vote']
+	except KeyError:
+		return jsonify(code = 3, response = 'Missing parameters')	
+
+	if vote == 1:
+		query = """UPDATE thread SET likes = likes + 1, points = points + 1 WHERE id = %s;"""
+	else:
+		query = """UPDATE thread SET dislikes = dislikes + 1, points = points - 1 WHERE id = %s;"""
+
+	data = (threadId,)
+	executeQueryData(query,data)
+
+	threads = getThreads(threadId=threadId)
+	if threads != list():
+		thread = threads[0]
+	else:
+		thread = dict()
+
+	return jsonify(code = 0, response = thread)
+
+@app.route('/db/api/thread/subscribe/', methods=['POST'])
+def threadSubscribe():
+	dataJSON = request.get_json()
+	try:
+		user = dataJSON['user']
+		thread = dataJSON['thread']
+	except KeyError:
+		return jsonify(code = 3, response = 'Missing parameters')
+
+	query = """INSERT INTO subscription (subscriber, thread) VALUES (%s, %s);"""
+	data = (user,thread)
+	executeQueryData(query,data)
+
+	response = dict(thread = thread, user = user)
+	return jsonify(code = 0, response = response)
+
+
+@app.route('/db/api/thread/unsubscribe/', methods=['POST'])
+def threadUnsubscribe():
+	dataJSON = request.get_json()
+	try:
+		user = dataJSON['user']
+		thread = dataJSON['thread']
+	except KeyError:
+		return jsonify(code = 3, response = 'Missing parameters')
+
+	query = "DELETE FROM subscription \
+				WHERE subscriber = %s AND thread = %s;"
+	data = (user,thread)
+	executeQueryData(query,data)
+
+	response = dict(thread = thread, user = user)
+	return jsonify(code = 0, response = response)	
 
 

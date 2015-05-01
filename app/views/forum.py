@@ -84,14 +84,15 @@ def forumListThreads():
 			thread['user']['subscriptions'] = getSubscribedThreadsList(thread['user']['email'])
 
 		if 'forum' in related:
-			thread['forum'] = get_forum_dict(short_name=thread['forum'])
-
-
+			thread['forum'] = getForumDict(short_name=thread['forum'])
 	return	jsonify(code = 0,	response = threads)
+
 
 @app.route('/db/api/forum/listPosts/')
 def forumListPosts():
-	return 'ok'
+
+	return	jsonify(code = 0,	response = posts)
+
 
 @app.route('/db/api/forum/listUsers/')
 def forumListUsers():

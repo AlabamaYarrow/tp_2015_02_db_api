@@ -125,12 +125,13 @@ def listPosts():
 
 
 @app.route('/db/api/post/remove/', methods=['POST'])
-def postRemove():
-	dataJSON = request.get_json(force = True)	
-	try:
-		postId = dataJSON['post']		
-	except KeyError:
-		return	jsonify(code = 3,	response = 'Missing parameters')
+def postRemove(postId = 0):
+	if not postId:
+		dataJSON = request.get_json(force = True)	
+		try:
+			postId = dataJSON['post']		
+		except KeyError:
+			return	jsonify(code = 3,	response = 'Missing parameters')
 	post = getPostList(postId = postId)[0]
 	threadId = post['thread']
 
@@ -144,12 +145,13 @@ def postRemove():
 
 
 @app.route('/db/api/post/restore/', methods=['POST'])
-def postRestore():
-	dataJSON = request.get_json(force = True)	
-	try:
-		postId = dataJSON['post']		
-	except KeyError:
-		return	jsonify(code = 3,	response = 'Missing parameters')
+def postRestore(postId = 0):
+	if not postId:
+		dataJSON = request.get_json(force = True)	
+		try:
+			postId = dataJSON['post']		
+		except KeyError:
+			return	jsonify(code = 3,	response = 'Missing parameters')
 	post = getPostList(postId = postId)[0]
 	threadId = post['thread']
 

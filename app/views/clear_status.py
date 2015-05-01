@@ -38,5 +38,10 @@ def clear():
 	executeQuery(query)	
 	query = 'TRUNCATE TABLE post'
 	executeQuery(query)	
+	query = 'TRUNCATE TABLE follower'
+	executeQuery(query)	
+	query = 'TRUNCATE TABLE subscription'
+	executeQuery(query)	
+	
 	return jsonify (code = 0, response = 'OK')
 

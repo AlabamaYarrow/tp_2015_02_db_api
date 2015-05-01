@@ -25,21 +25,23 @@ def userCreate():
 	except MySQLdb.IntegrityError: 
 		return jsonify(code = 5, response = 'User exists')
 
-	return	jsonify(code = 0,	response = dict(
-									id = cur.lastrowid,	
-									name = name, 
-									about = about, 
-									username = username,
-									email = email,
-									isAnonymous = isAnonymous
-								))
+	response = {
+		'id' : cur.lastrowid,	
+		'name' : name, 
+		'about' : about, 
+		'username' : username,
+		'email' : email,
+		'isAnonymous' : isAnonymous
+	}
+
+	return	jsonify(code = 0, response = response)
 
 @app.route('/db/api/user/details/', methods=['GET'])
 def userDetails(): 	
 	try:		
 		user = request.args.get('user')
 	except KeyError:
-		return	jsonify(code = 3,	response = 'User not specified')
+		return	jsonify(code = 3, response = 'User not specified')
 
 	response = getUserDict(user)
 	if response == 'Not Found':
@@ -94,7 +96,7 @@ def userFollow():
 	except KeyError:
 		return jsonify(code = 3, response = "Missing parameters")
 
-	query = """INSERT INTO follower (follower, following) VALUES (%s, %s);"""
+	query = "INSERT INTO follower (follower, following) VALUES (%s, %s);"
 	data = (follower, followee)
 	executeQueryData(query,data)
 
@@ -112,7 +114,7 @@ def userUnfollow():
 	except KeyError:
 		return jsonify(code = 3, response = "Missing parameters")
 
-	query = """DELETE FROM follower WHERE follower = %s AND following = %s;"""
+	query = "DELETE FROM follower WHERE follower = %s AND following = %s;"
 	data = (follower, followee)
 	executeQueryData(query,data)
 
@@ -124,7 +126,6 @@ def userUnfollow():
 @app.route('/db/api/user/listFollowers/', methods=['GET'])
 def userListFollowers():
 	return userListFollows('followers')
-
 
 
 @app.route('/db/api/user/listFollowing/', methods=['GET'])
@@ -139,11 +140,11 @@ def userListFollows(requestType):
 
 	sinceId = request.args.get('since_id', -1)
 	if sinceId != -1:
-		sinceIdCond = """AND user.Id >= {}""".format(sinceId)
+		sinceIdCond = "AND user.Id >= %s" % (sinceId)
 	else:
 		sinceIdCond = ""
 
-	orderCond = """ORDER BY user.name {}""".format(request.args.get('order', 'desc'))
+	orderCond = "ORDER BY user.name %s" % (request.args.get('order', 'desc'))
 
 	limit = request.args.get('limit', -1)
 	if limit != -1:
@@ -157,13 +158,13 @@ def userListFollows(requestType):
 	else:
 		limitCond = ""
 
-	query = """SELECT about, email, id, isAnonymous, name, username FROM user JOIN follower ON """
+	query = "SELECT about, email, id, isAnonymous, name, username FROM user JOIN follower ON "
 	if requestType == 'followers':
-		query += """follower.follower = user.email WHERE follower.following"""
+		query += "follower.follower = user.email WHERE follower.following"
 	else:
-		query += """follower.following = user.email WHERE follower.follower"""
+		query += "follower.following = user.email WHERE follower.follower"
 
-	query += """ = %s {since} {order} {limit};""".format(
+	query += " = %s {since} {order} {limit};".format(
 		since=sinceIdCond, order=orderCond, limit=limitCond)
 
 	data = (email,)

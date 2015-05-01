@@ -1,11 +1,13 @@
 from flask import g
 import MySQLdb
 
+
 def executeQuery(query):
 	cur = g.db_conn.cursor()
 	cur.execute(query)
 	g.db_conn.commit()
 	return cur
+
 
 def executeQueryData(query, data):
 	cur = g.db_conn.cursor()
@@ -15,57 +17,50 @@ def executeQueryData(query, data):
 
 
 def getFollowersList(email):
-	query = """SELECT follower FROM follower WHERE following = %s;"""
+	query = "SELECT follower \
+			FROM follower \
+			WHERE following = %s;"
 	data = (email,)
-
 	rows = executeQueryData(query, data).fetchall()
-
 	if not rows:
 		return list()
-
 	return rows[0]
 
 
 def getFollowingList(email):
-	query = """SELECT following \
-				FROM follower \
-				WHERE follower = %s;"""
+	query = "SELECT following \
+			FROM follower \
+			WHERE follower = %s;"
 	data = (email,)
-
 	rows = executeQueryData(query, data).fetchall()
-
 	if not rows:
 	    return list()
-
 	return rows[0]
 
 
-def getPostList(user="", forum="", thread="", postId="", since="", limit=-1, sort='flat', \
-                  order='desc', date=""):
+def getPostList(user='', forum='', thread='', postId='', since='', limit=-1, \
+				sort='flat', order='desc', date=''):
 	if postId != "":
-		whereCond = " id = {}".format(postId)
+		whereCond = " id = %s" % (postId)
 	elif forum != "":
-		whereCond = " forum = '{}'".format(forum)
+		whereCond = " forum = '%s'" % (forum)
 	elif thread != "":
-		whereCond = " thread = {}".format(thread)
+		whereCond = " thread = %s" % (thread)
 	elif user != "":
 		if date != "":
-			whereCond = " user = '{userValue}' AND date = '{dateValue}'".format(userValue=user, dateValue=date)
+			whereCond = " user = '%s' AND date = '%s'" % (user, date)
 		else:
-			whereCond = " user = '{userValue}'".format(userValue=user)
+			whereCond = " user = '%s'" % (user)
 	else:
-		print 'No criteria'
 		return list()
 
 	sinceCond = ""
 	if since != "":
-		sinceCond = """ AND date >= '{}'""".format(since)
+		sinceCond = " AND date >= '%s'" % (since)
 
 	if sort != 'flat' and sort != 'tree' and sort != 'parent_tree':
-		print 'Sort param error'
 		return list()
-	# sortCond = """ORDER BY Post.date {}""".format(sort)
-	sortCond = """"""
+	sortCond = ""
 
 	limitCond = ""
 	if limit != -1:
@@ -77,31 +72,21 @@ def getPostList(user="", forum="", thread="", postId="", since="", limit=-1, sor
 		if limit < 0:
 			print 'Limit error'
 			return list()
-		limitCond = """ LIMIT {}""".format(limit)
+		limitCond = " LIMIT {}".format(limit)
 
 	if order != 'asc' and order != 'desc':
 		return jsonify(code = 3, response = 'Wrong order value')
-	orderCond = """ ORDER BY date {}""".format(order)
-
-	'''
-	query = "SELECT id, user, thread, forum, message, parent, date, likes, dislikes, points, \
-		isSpam, isEdited, isDeleted, isHighlighted, isApproved \
-		FROM post \
-		WHERE %s %s %s %s %s;"
-
-	data = (whereCond, sinceCond, orderCond, sortCond, limitCond)
-	data = (whereCond, sinceCond, orderCond, sortCond, limitCond)
-	rows = executeQueryData(query, data)
-	'''
+	orderCond = " ORDER BY date {}".format(order)
 	
-	query = "SELECT id, user, thread, forum, message, parent, date, likes, dislikes, points, \
-	isSpam, isEdited, isDeleted, isHighlighted, isApproved \
-	FROM post \
-	WHERE %s %s %s %s %s;" % (whereCond, sinceCond, orderCond, sortCond, limitCond)
+	query = "SELECT id, user, thread, forum, message, \
+			parent, date, likes, dislikes, points, \
+			isSpam, isEdited, isDeleted, isHighlighted, isApproved \
+			FROM post \
+			WHERE %s %s %s %s %s;" \
+			% (whereCond, sinceCond, orderCond, sortCond, limitCond)
 	rows = executeQuery(query)
 	
 	if not rows:
-		print 'Empty set'
 		return list()
 
 	posts = list()
@@ -128,24 +113,25 @@ def getPostList(user="", forum="", thread="", postId="", since="", limit=-1, sor
 	return posts
 
 
-def getThreads(threadId = "", title = "", forum = "", user = "", since = "", limit = -1, order = "desc"):
+def getThreadList(threadId = "", title = "", forum = "", user = "", \
+					since = "", limit = -1, order = "desc"):
 	if threadId != "":
-		whereCond = "id = {}".format(threadId)
+		whereCond = "id = %s" % (threadId)
 	elif title != "":
-		whereCond = "title = '{}'".format(title)
+		whereCond = "title = '%s'" % (title)
 	elif forum != "":
-		whereCond = "forum = '{}'".format(forum)
+		whereCond = "forum = '%s'" % (forum)
 	elif user != "":
-		whereCond = "user = '{}'".format(user)
+		whereCond = "user = '%s'" % (user)
 		return list()
 
 	sinceCond = ""
 	if since != "":
-		sinceCond = """ AND date >= '{}'""".format(since)
+		sinceCond = "AND date >= '%s'" % (since)
 
 	if order != 'asc' and order != 'desc':
 		return list()
-	orderCond = """ ORDER BY date {}""".format(order)
+	orderCond = "ORDER BY date %s" % (order)
 
 	limitCond = ""
 	if limit != -1:
@@ -155,17 +141,8 @@ def getThreads(threadId = "", title = "", forum = "", user = "", since = "", lim
 			return list()
 		if limit < 0:
 			return list()
-		limitCond = """ LIMIT {}""".format( int(limit) )
-	'''
-	query = "SELECT id, title, user, message, \
-			 forum, isDeleted, isClosed, date, slug, \
-			 likes, dislikes, \
-			 points, posts \
-			 FROM thread \
-			 WHERE %s %s %s %s;"
-	data = (whereCond, sinceCond, orderCond, limitCond)
-	rows = executeQueryData(query, data).fetchall()
-	'''
+		limitCond = "LIMIT %s" % ( int(limit) )
+
 	query = "SELECT id, title, user, message, \
 			 forum, isDeleted, isClosed, date, slug, \
 			 likes, dislikes, \
@@ -210,16 +187,16 @@ def getUserDict(user):
 		return 'Not found'
 
 	return {
-				'id' : row[0],
-				'email' : row[1],
-				'username' : row[2],
-				'name' : row[3],
-				'isAnonymous' : bool(row[4]),
-				'about' : row[5],				
-				'followers' : [],
-				'following' : [],
-				'subscriptions' : []				
-			}
+		'id' : row[0],
+		'email' : row[1],
+		'username' : row[2],
+		'name' : row[3],
+		'isAnonymous' : bool(row[4]),
+		'about' : row[5],				
+		'followers' : [],
+		'following' : [],
+		'subscriptions' : []				
+	}
 
 
 def getForumDict(forum):
@@ -231,28 +208,28 @@ def getForumDict(forum):
 	if not row:
 		return {}
 	return {
-				'id' : row[0],	
-				'name' : row[1], 
-				'short_name' : row[2], 
-				'user' : row[3]
-			}	
+		'id' : row[0],	
+		'name' : row[1], 
+		'short_name' : row[2], 
+		'user' : row[3]
+	}	
 	
 
 
 def postsInThreadIncrement(threadId):
-	query = """UPDATE thread SET posts = posts + 1 WHERE id = %s;"""
+	query = "UPDATE thread SET posts = posts + 1 WHERE id = %s;"
 	data = (threadId,)
 	executeQueryData(query, data)
 
 
 def postsInThreadDecrement(threadId):
-	query = """UPDATE thread SET posts = posts - 1 WHERE id = %s;"""
+	query = "UPDATE thread SET posts = posts - 1 WHERE id = %s;"
 	data = (threadId,)
 	executeQueryData(query, data)
 
 
 def getFollowerList(user):
-	query = """SELECT follower FROM follower WHERE following = %s;"""
+	query = "SELECT follower FROM follower WHERE following = %s;"
 	data = (user,)
 	rows = executeQueryData(query, data).fetchall()
 	if not rows:
@@ -261,7 +238,7 @@ def getFollowerList(user):
 
 
 def getFollowingList(user):
-	query = """SELECT following FROM follower WHERE follower = %s;"""
+	query = "SELECT following FROM follower WHERE follower = %s;"
 	data = (user,)
 	rows = executeQueryData(query, data).fetchall()
 	if not rows:

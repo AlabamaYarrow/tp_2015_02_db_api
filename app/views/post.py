@@ -33,33 +33,31 @@ def postCreate():
 		id = cur.lastrowid
 		postsInThreadIncrement(thread)
 	except MySQLdb.IntegrityError: 
-		query = "SELECT id FROM post \
-				WHERE ... " 
-		#???
+		return	jsonify(code = 5, response = 'Already exists')
 
+	response = {
+		'date' : date,
+		'forum' : forum,
+		'id' : id,	
+		'isApproved' : isApproved,
+		'isDeleted' : isDeleted,
+		'isEdited' : isEdited,
+		'isHighlighted' : isHighlighted,
+		'isSpam' : isSpam,
+		'message' : message,
+		'parent' : parent,
+		'thread' : thread,
+		'user' : user
+	}
 
-
-	return	jsonify(code = 0,	response = dict(
-									date = date,
-									forum = forum,
-									id = id,	
-									isApproved = isApproved,
-									isDeleted = isDeleted,
-									isEdited = isEdited,
-									isHighlighted = isHighlighted,
-									isSpam = isSpam,
-									message = message,
-									parent = parent,
-									thread = thread,
-									user = user
-								))
+	return	jsonify(code = 0,	response = response)
 
 
 @app.route('/db/api/post/details/', methods=['GET'])
 def postDetails():	
 	post = request.args.get('post')	
 	if not post:
-		return jsonify(code=3, response='Post not specified')	
+		return jsonify(code = 3, response = 'Post not specified')	
 	related = request.args.getlist('related')
 
 	query = "SELECT date, isApproved, isDeleted, \
@@ -74,31 +72,24 @@ def postDetails():
 	if not row:
 		return	jsonify(code = 1, response = 'Not found')
 
-	response = 	dict(					
-					date = row[0].strftime("%Y-%m-%d %H:%M:%S"),
-					isApproved = bool(row[1]),
-					isDeleted = bool(row[2]),
-					isEdited = bool(row[3]),
-					isHighlighted = bool(row[4]),
-					isSpam = bool(row[5]),
-					message = row[6],
-					parent = row[7],
-					id = int(post),
-					likes = int(row[8]),
-					dislikes = int(row[9]),
-					points = int(row[10])
-				)	
+	response = {					
+		'date' : row[0].strftime("%Y-%m-%d %H:%M:%S"),
+		'isApproved' : bool(row[1]),
+		'isDeleted' : bool(row[2]),
+		'isEdited' : bool(row[3]),
+		'isHighlighted' : bool(row[4]),
+		'isSpam' : bool(row[5]),
+		'message' : row[6],
+		'parent' : row[7],
+		'id' : int(post),
+		'likes' : int(row[8]),
+		'dislikes' : int(row[9]),
+		'points' : int(row[10])
+	}	
 	response['thread'] = row[11]
 	response['forum'] = row[12]
 	response['user'] = row[13]
-	'''
-	if 'thread' in related:
-		response['thread'] = row[8]
-	if 'forum' in related:
-		response['forum'] = row[9]
-	if 'user' in related:
-		response['user'] = row[10]
-	'''
+
 	return	jsonify(code = 0,	response = response)
 
 
@@ -114,9 +105,9 @@ def listPosts():
 	order = request.args.get('order', '')
 
 	if forum:
-		posts = getPostList(forum=forum, since=since, limit=limit, order=order)
+		posts = getPostList(forum = forum, since = since, limit = limit, order = order)
 	else:
-		posts = getPostList(thread=thread, since=since, limit=limit, order=order)
+		posts = getPostList(thread = thread, since = since, limit = limit, order = order)
 
 	response = posts
 	if response == None:
@@ -135,7 +126,7 @@ def postRemove(postId = 0):
 	post = getPostList(postId = postId)[0]
 	threadId = post['thread']
 
-	query = """UPDATE post SET isDeleted = 1 WHERE id = %s;"""
+	query = "UPDATE post SET isDeleted = 1 WHERE id = %s;"
 	data = (postId,)
 	executeQueryData(query, data)
 
@@ -155,7 +146,7 @@ def postRestore(postId = 0):
 	post = getPostList(postId = postId)[0]
 	threadId = post['thread']
 
-	query = """UPDATE post SET isDeleted = 0 WHERE id = %s;"""
+	query = "UPDATE post SET isDeleted = 0 WHERE id = %s;"
 	data = (postId,)
 	executeQueryData(query, data)
 
@@ -174,7 +165,7 @@ def postUpdate():
 	except KeyError:
 		return	jsonify(code = 3,	response = 'Missing parameters')
 
-	query = """UPDATE post SET message = %s WHERE id = %s;"""
+	query = "UPDATE post SET message = %s WHERE id = %s;"
 	data = (message, postId)
 
 	executeQueryData(query,data)
@@ -198,9 +189,9 @@ def postVote():
 		return jsonify(code = 3, response = 'Missing parameters')
 
 	if vote == 1:
-		query = """UPDATE post SET likes = likes + 1, points = points + 1 WHERE id = %s;"""
+		query = "UPDATE post SET likes = likes + 1, points = points + 1 WHERE id = %s;"
 	elif vote == -1:
-		query = """UPDATE post SET dislikes = dislikes + 1, points = points - 1 WHERE id = %s;"""
+		query = "UPDATE post SET dislikes = dislikes + 1, points = points - 1 WHERE id = %s;"
 	else:
 		return jsonify(code =  3, response = 'Incorrect vote')
 

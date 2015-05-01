@@ -6,6 +6,12 @@ DROP TABLE IF EXISTS `tp_db`.`follower`;
 DROP TABLE IF EXISTS `tp_db`.`subscription`;
 
 
+CREATE TABLE `tp_db`.`follower` (
+  `follower` VARCHAR(45) NULL,
+  `following` VARCHAR(45) NULL
+) DEFAULT CHARSET=utf8;
+
+
 CREATE TABLE `tp_db`.`forum` (
   `id` INT NOT NULL AUTO_INCREMENT,
   `name` VARCHAR(45) NULL,
@@ -15,6 +21,7 @@ CREATE TABLE `tp_db`.`forum` (
   UNIQUE KEY `name_UNIQUE` (`name`),
   UNIQUE KEY `short_name_UNIQUE` (`short_name`))
   DEFAULT CHARSET=utf8;
+
 
 CREATE TABLE `tp_db`.`post` (
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -35,6 +42,12 @@ CREATE TABLE `tp_db`.`post` (
   PRIMARY KEY (`id`))
   DEFAULT CHARSET=utf8;
  
+
+CREATE TABLE `tp_db`.`subscription` (
+  `subscriber` VARCHAR(45) NULL,
+  `thread` INT NULL 
+) DEFAULT CHARSET=utf8;
+
 
 CREATE TABLE `tp_db`.`thread` (
   `id` INT NOT NULL AUTO_INCREMENT,
@@ -64,15 +77,3 @@ CREATE TABLE `tp_db`.`user` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `email_UNIQUE` (`email`))
   DEFAULT CHARSET=utf8;
-
-
-CREATE TABLE `tp_db`.`follower` (
-  `follower` VARCHAR(45) NULL,
-  `following` VARCHAR(45) NULL
-) DEFAULT CHARSET=utf8;
-
-
-CREATE TABLE `tp_db`.`subscription` (
-  `subscriber` VARCHAR(45) NULL,
-  `thread` INT NULL 
-) DEFAULT CHARSET=utf8;

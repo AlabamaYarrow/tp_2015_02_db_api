@@ -5,6 +5,7 @@ import json
 from utils import *
 from user import getUserDict
 
+
 @app.route('/db/api/forum/create/', methods=['POST'])
 def forumCreate():	
 	dataJSON = request.get_json(force = True)	
@@ -27,20 +28,22 @@ def forumCreate():
 		data = (name, short_name) 
 		row = executeQueryData(query, data).fetchone()
 		id = row[0]
+
+	response = {
+		'id' : id,	
+		'name' : name, 
+		'short_name' : short_name, 
+		'user' : user
+	}
 	
-	return	jsonify(code = 0,	response = 	dict(
-												id = id,	
-												name = name, 
-												short_name = short_name, 
-												user = user
-											))
+	return	jsonify(code = 0,	response = 	response)
 
 
 @app.route('/db/api/forum/details/', methods=['GET'])
 def forumDetails():
 	forum = request.args.get('forum')	
 	if not forum:
-		return jsonify(code=3, response='Forum not specified')
+		return jsonify(code = 3, response = 'Forum not specified')
 
 	related = request.args.getlist('related')	
 	forumDict = getForumDict(forum)
@@ -51,7 +54,7 @@ def forumDetails():
 
 	response = forumDict
 
-	return	jsonify(code = 0,	response = response)
+	return	jsonify(code = 0, response = response)
 
 
 @app.route('/db/api/forum/listThreads/', methods=['GET'])
@@ -64,7 +67,7 @@ def forumListThreads():
 	order = request.args.get('order', 'desc')
 	related = request.args.getlist('related')
 
-	threads = getThreads(forum=forum, since=since, order=order, limit=limit)
+	threads = getThreadList(forum = forum, since = since, order = order, limit = limit)
 
 	for thread in threads:
 		if 'user' in related:
@@ -75,7 +78,8 @@ def forumListThreads():
 
 		if 'forum' in related:
 			thread['forum'] = getForumDict(thread['forum'])
-	return	jsonify(code = 0,	response = threads)
+
+	return	jsonify(code = 0, response = threads)
 
 
 @app.route('/db/api/forum/listUsers/', methods=['GET'])
@@ -90,7 +94,7 @@ def forumListUsers():
 			sinceId = int(sinceId)
 		except ValueError:
 			return jsonify(code = 3, response = 'Incorrect request')
-		sinceIdCond = """AND user.id >= {}""".format(sinceId)
+		sinceIdCond = "AND user.id >= %s" % (sinceId)
 	else:
 		sinceIdCond = ''
 
@@ -102,19 +106,20 @@ def forumListUsers():
 			return jsonify(code = 3, response = 'Incorrect request')
 		if limit < 0:
 			return jsonify(code = 3, response = 'Incorrect request')
-		limitCond = """LIMIT {}""".format(limit)
+		limitCond = "LIMIT %s" % (limit)
 	else:
 		limitCond = ''
 
 	order = request.args.get('order', 'desc')
-	orderCond = """ORDER BY user.name {}""".format(order) 
+	orderCond = "ORDER BY user.name %s" % (order) 
 
-	query = """SELECT user.id, user.email, user.name, user.username, user.isAnonymous, user.about \
-		FROM user \
-		JOIN post ON post.user = user.email \
-		WHERE post.forum = %s {sinceId} \
-		GROUP BY user.id {order} {limit};""".format(
-		sinceId=sinceIdCond, limit=limitCond, order=orderCond)
+	query = "SELECT user.id, user.email, user.name, \
+			user.username, user.isAnonymous, user.about \
+			FROM user \
+			JOIN post ON post.user = user.email \
+			WHERE post.forum = %s {sinceId} \
+			GROUP BY user.id {order} {limit};".format(
+			sinceId=sinceIdCond, limit=limitCond, order=orderCond)
 	data = (forum,)
 
 	rows = executeQueryData(query,data)
@@ -171,7 +176,7 @@ def forumListPosts():
 			post['user'] = getUserDict(post['user'])
 
 		if threadInRelated:
-			post['thread'] = getThreads(threadId = post['thread'])[0]
+			post['thread'] = getThreadList(threadId = post['thread'])[0]
 
 		if forumInRelated:
 			post['forum'] = getForumDict(post['forum'])

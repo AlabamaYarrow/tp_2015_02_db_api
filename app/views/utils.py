@@ -222,6 +222,23 @@ def getUserDict(user):
 			}
 
 
+def getForumDict(forum):
+	query = "SELECT id,name,short_name,user \
+			 FROM forum \
+			 WHERE short_name = %s" 
+	data = (forum,)
+	row = executeQueryData(query,data).fetchone()
+	if not row:
+		return {}
+	return {
+				'id' : row[0],	
+				'name' : row[1], 
+				'short_name' : row[2], 
+				'user' : row[3]
+			}	
+	
+
+
 def postsInThreadIncrement(threadId):
 	query = """UPDATE thread SET posts = posts + 1 WHERE id = %s;"""
 	data = (threadId,)

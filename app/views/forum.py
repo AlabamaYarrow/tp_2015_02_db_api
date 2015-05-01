@@ -42,24 +42,14 @@ def forumDetails():
 	if not forum:
 		return jsonify(code=3, response='Forum not specified')
 
-	related = request.args.getlist('related')
-	query = "SELECT id,name,short_name,user \
-			 FROM forum \
-			 WHERE short_name = %s" 
-	data = (forum,)
-	row = executeQueryData(query,data).fetchone()
-	if not row:
-		return	jsonify(code = 1, response = 'Not found')
+	related = request.args.getlist('related')	
+	forumDict = getForumDict(forum)
 
-	response = 	dict(
-					id = row[0],	
-					name = row[1], 
-					short_name = row[2], 
-					user = row[3]
-				)	
 	if 'user' in related:
-		userDict = getUserDict(row[3])
-		response['user'] = userDict
+		userDict = getUserDict(forumDict['user'])
+		forumDict['user'] = userDict
+
+	response = forumDict
 
 	return	jsonify(code = 0,	response = response)
 
@@ -84,16 +74,106 @@ def forumListThreads():
 			thread['user']['subscriptions'] = getSubscribedThreadsList(thread['user']['email'])
 
 		if 'forum' in related:
-			thread['forum'] = getForumDict(short_name=thread['forum'])
+			thread['forum'] = getForumDict(thread['forum'])
 	return	jsonify(code = 0,	response = threads)
+
+
+@app.route('/db/api/forum/listUsers/', methods=['GET'])
+def forumListUsers():
+	forum = request.args.get('forum')
+	if not forum:
+		return jsonify(code = 3, response = 'Missing parameters')
+
+	sinceId = request.args.get('since_id')
+	if sinceId:
+		try:
+			sinceId = int(sinceId)
+		except ValueError:
+			return jsonify(code = 3, response = 'Incorrect request')
+		sinceIdCond = """AND user.id >= {}""".format(sinceId)
+	else:
+		sinceIdCond = ''
+
+	if request.args.get('limit'):
+		limit = request.args.get('limit')
+		try:
+			limit = int(limit)
+		except ValueError:
+			return jsonify(code = 3, response = 'Incorrect request')
+		if limit < 0:
+			return jsonify(code = 3, response = 'Incorrect request')
+		limitCond = """LIMIT {}""".format(limit)
+	else:
+		limitCond = ''
+
+	order = request.args.get('order', 'desc')
+	orderCond = """ORDER BY user.name {}""".format(order) 
+
+	query = """SELECT user.id, user.email, user.name, user.username, user.isAnonymous, user.about \
+		FROM user \
+		JOIN post ON post.user = user.email \
+		WHERE post.forum = %s {sinceId} \
+		GROUP BY user.id {order} {limit};""".format(
+		sinceId=sinceIdCond, limit=limitCond, order=orderCond)
+	data = (forum,)
+
+	rows = executeQueryData(query,data)
+
+	users = list()
+	for row in rows:
+		user = dict()
+		user['id'] = row[0]
+		user['email'] = row[1]
+		user['name'] = row[2]
+		user['username'] = row[3]
+		user['isAnonymous'] = row[4]
+		user['about'] = row[5]
+		user['followers'] = getFollowersList(user['email'])
+		user['following'] = getFollowingList(user['email'])
+		user['subscriptions'] = getSubscribedThreadsList(user['email'])
+
+		users.append(user)
+
+	return jsonify(code = 0, response = users)
+
 
 
 @app.route('/db/api/forum/listPosts/')
 def forumListPosts():
+	forum = request.args.get('forum')
+	if not forum:
+		return jsonify(code = 3, response = 'Missing parameters')
 
-	return	jsonify(code = 0,	response = posts)
+	related = request.args.getlist('related')
+	threadInRelated = False
+	forumInRelated = False
+	userInRelated = False
 
+	for relatedValue in related:
+		if relatedValue == 'thread':
+			threadInRelated = True
+		elif relatedValue == 'forum':
+			forumInRelated = True
+		elif relatedValue == 'user':
+			userInRelated = True
+		else:
+			return	jsonify(code = 3, response = 'Incorrect request')
 
-@app.route('/db/api/forum/listUsers/')
-def forumListUsers():
-	return 'ok'
+	since = request.args.get('since', '')
+	limit = request.args.get('limit', -1)
+	sort = request.args.get('sort', 'flat')
+	order = request.args.get('order', 'desc')
+
+	posts = getPostList(forum=forum, since=since, limit=limit, sort=sort, order=order)
+
+	for post in posts:
+		if userInRelated:
+			post['user'] = getUserDict(post['user'])
+
+		if threadInRelated:
+			post['thread'] = getThreads(threadId = post['thread'])[0]
+
+		if forumInRelated:
+			post['forum'] = getForumDict(post['forum'])
+
+	return jsonify(code = 0, response = posts)

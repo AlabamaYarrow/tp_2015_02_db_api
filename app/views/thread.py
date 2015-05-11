@@ -104,7 +104,6 @@ def threadList():
 	since = request.args.get('since', '')
 	order = request.args.get('order', '')
 	limit = request.args.get('limit', -1)
-
 	if request.args.get('forum'):
 		threads = getThreadList(forum=forum, since=since, order=order, limit=limit)
 	else:

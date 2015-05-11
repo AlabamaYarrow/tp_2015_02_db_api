@@ -123,8 +123,7 @@ def getThreadList(threadId = "", title = "", forum = "", user = "", \
 		whereCond = "forum = '%s'" % (forum)
 	elif user != "":
 		whereCond = "user = '%s'" % (user)
-		return list()
-
+		
 	sinceCond = ""
 	if since != "":
 		sinceCond = "AND date >= '%s'" % (since)

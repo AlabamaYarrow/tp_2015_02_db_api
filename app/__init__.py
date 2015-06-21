@@ -3,6 +3,7 @@ import MySQLdb
 import settings
 
 app = Flask(__name__)	
+app.config['JSONIFY_PRETTYPRINT_REGULAR'] = False
 
 @app.before_request
 def db_connect():
@@ -12,12 +13,10 @@ def db_connect():
 					passwd=settings.DB_PASSWD, 
 					db=settings.DB_NAME)    
 	g.db_conn.set_character_set('utf8')
-	cur = g.db_conn.cursor()
 
 
 @app.teardown_request
 def db_disconnect(exception=None):
     g.db_conn.close()
-
 
 from app.views import *

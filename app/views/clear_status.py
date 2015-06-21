@@ -7,6 +7,7 @@ from utils import *
 def index():
 	return 'Hello world!'
 
+
 @app.route('/db/api/status/', methods=['GET'])
 def status():	
 	query = 'SELECT \
@@ -21,12 +22,15 @@ def status():
 						
 	cur = executeQuery(query)	
 	r = cur.fetchone()
-	return jsonify (code = 0, 	response = dict(
-								user = r[0],
-								thread = r[1],
-								forum = r[2],
-								post = r[3]
-								))
+	response = {
+		'user' : r[0],
+		'thread' : r[1],
+		'forum' : r[2],
+		'post' : r[3] 
+	}
+
+	return jsonify (code = 0, response = response)
+
 
 @app.route('/db/api/clear/', methods=['POST'])
 def clear():	

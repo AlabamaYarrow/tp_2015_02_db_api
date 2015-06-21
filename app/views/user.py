@@ -15,7 +15,7 @@ def userCreate():
 		email = dataJSON['email']	
 		isAnonymous = dataJSON.get('isAnonymous', False) 
 	except KeyError:
-		return	jsonify(code = 3,	response = 'Missing parameters')
+		return	jsonify(code = 3, response = 'Missing parameters')
 	
 	try:
 		query = "INSERT INTO user (name, about, username, email, isAnonymous) \
@@ -148,13 +148,7 @@ def userListFollows(requestType):
 
 	limit = request.args.get('limit', -1)
 	if limit != -1:
-		try:
-			limit = int(limit)
-		except ValueError:
-			return jsonify(code = 3, response = 'Incorrect limit')
-		if limit < 0:
-			return  jsonify(code = 3, response = 'Incorrect limit')
-		limitCond = """LIMIT {}""".format(limit)
+		limitCond = "LIMIT {}".format( int(limit) )
 	else:
 		limitCond = ""
 

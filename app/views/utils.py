@@ -51,32 +51,18 @@ def getPostList(user='', forum='', thread='', postId='', since='', limit=-1, \
 			whereCond = " user = '%s' AND date = '%s'" % (user, date)
 		else:
 			whereCond = " user = '%s'" % (user)
-	else:
-		return list()
 
 	sinceCond = ""
 	if since != "":
 		sinceCond = " AND date >= '%s'" % (since)
 
-	if sort != 'flat' and sort != 'tree' and sort != 'parent_tree':
-		return list()
 	sortCond = ""
 
 	limitCond = ""
-	if limit != -1:
-		try:
-			limit = int(limit)
-		except ValueError:
-			print 'Limit error'
-			return list()
-		if limit < 0:
-			print 'Limit error'
-			return list()
-		limitCond = " LIMIT {}".format(limit)
-
-	if order != 'asc' and order != 'desc':
-		return jsonify(code = 3, response = 'Wrong order value')
-	orderCond = " ORDER BY date {}".format(order)
+	if limit != -1:			
+		limitCond = " LIMIT %s" % ( int(limit) )
+	
+	orderCond = " ORDER BY date %s" % (order)
 	
 	query = "SELECT id, user, thread, forum, message, \
 			parent, date, likes, dislikes, points, \
@@ -128,18 +114,10 @@ def getThreadList(threadId = "", title = "", forum = "", user = "", \
 	if since != "":
 		sinceCond = "AND date >= '%s'" % (since)
 
-	if order != 'asc' and order != 'desc':
-		return list()
 	orderCond = "ORDER BY date %s" % (order)
 
 	limitCond = ""
 	if limit != -1:
-		try:
-			limit = int(limit)
-		except ValueError:
-			return list()
-		if limit < 0:
-			return list()
 		limitCond = "LIMIT %s" % ( int(limit) )
 
 	query = "SELECT id, title, user, message, \
@@ -184,7 +162,6 @@ def getUserDict(user):
 	row = cur.fetchone()
 	if not row:
 		return 'Not found'
-
 	return {
 		'id' : row[0],
 		'email' : row[1],
@@ -213,7 +190,6 @@ def getForumDict(forum):
 		'user' : row[3]
 	}	
 	
-
 
 def postsInThreadIncrement(threadId):
 	query = "UPDATE thread SET posts = posts + 1 WHERE id = %s;"

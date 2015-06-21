@@ -3,7 +3,6 @@ from flask import g, request, jsonify
 import MySQLdb
 import json
 from utils import *
-from user import getUserDict
 
 
 @app.route('/db/api/forum/create/', methods=['POST'])
@@ -14,7 +13,7 @@ def forumCreate():
 		short_name = dataJSON['short_name']
 		user = dataJSON['user']				
 	except KeyError:
-		return	jsonify(code = 3,	response = 'Missing parameters')
+		return	jsonify(code = 3, response = 'Missing parameters')
 
 	try:
 		query = "INSERT INTO forum (name, short_name, user) \
@@ -24,7 +23,7 @@ def forumCreate():
 		id = cur.lastrowid
 	except MySQLdb.IntegrityError: 
 		query = "SELECT id FROM forum \
-				WHERE name=%s OR short_name=%s"
+				WHERE name= %s OR short_name = %s"
 		data = (name, short_name) 
 		row = executeQueryData(query, data).fetchone()
 		id = row[0]
@@ -36,7 +35,7 @@ def forumCreate():
 		'user' : user
 	}
 	
-	return	jsonify(code = 0,	response = 	response)
+	return	jsonify(code = 0, response = response)
 
 
 @app.route('/db/api/forum/details/', methods=['GET'])
@@ -90,23 +89,13 @@ def forumListUsers():
 
 	sinceId = request.args.get('since_id')
 	if sinceId:
-		try:
-			sinceId = int(sinceId)
-		except ValueError:
-			return jsonify(code = 3, response = 'Incorrect request')
-		sinceIdCond = "AND user.id >= %s" % (sinceId)
+		sinceIdCond = "AND user.id >= %s" % ( int(sinceId) )
 	else:
 		sinceIdCond = ''
 
-	if request.args.get('limit'):
-		limit = request.args.get('limit')
-		try:
-			limit = int(limit)
-		except ValueError:
-			return jsonify(code = 3, response = 'Incorrect request')
-		if limit < 0:
-			return jsonify(code = 3, response = 'Incorrect request')
-		limitCond = "LIMIT %s" % (limit)
+	limit = request.args.get('limit') 
+	if limit:
+		limitCond = "LIMIT %s" % ( int(limit) )
 	else:
 		limitCond = ''
 
@@ -114,15 +103,15 @@ def forumListUsers():
 	orderCond = "ORDER BY user.name %s" % (order) 
 
 	query = "SELECT user.id, user.email, user.name, \
-			user.username, user.isAnonymous, user.about \
-			FROM user \
-			JOIN post ON post.user = user.email \
-			WHERE post.forum = %s {sinceId} \
-			GROUP BY user.id {order} {limit};".format(
-			sinceId=sinceIdCond, limit=limitCond, order=orderCond)
+	  		user.username, user.isAnonymous, user.about \
+	  		FROM user USE KEY (user_name_email) \
+	  		WHERE user.email in (SELECT DISTINCT user FROM post WHERE forum = %s) \
+	  		{sinceId} {order} {limit};".format(sinceId=sinceIdCond, limit=limitCond, order=orderCond)
+	
 	data = (forum,)
 
 	rows = executeQueryData(query,data)
+
 
 	users = list()
 	for row in rows:
@@ -140,7 +129,6 @@ def forumListUsers():
 		users.append(user)
 
 	return jsonify(code = 0, response = users)
-
 
 
 @app.route('/db/api/forum/listPosts/')
@@ -174,10 +162,8 @@ def forumListPosts():
 	for post in posts:
 		if userInRelated:
 			post['user'] = getUserDict(post['user'])
-
 		if threadInRelated:
 			post['thread'] = getThreadList(threadId = post['thread'])[0]
-
 		if forumInRelated:
 			post['forum'] = getForumDict(post['forum'])
 

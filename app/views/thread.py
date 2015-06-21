@@ -91,7 +91,7 @@ def threadDetails():
 	response['forum'] = row[10]
 	response['user'] = row[11]	
 
-	return	jsonify(code = 0,	response = response)
+	return	jsonify(code = 0, response = response)
 
 
 @app.route('/db/api/thread/list/', methods=['GET'])

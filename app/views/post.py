@@ -14,7 +14,7 @@ def postCreate():
 		user = dataJSON['user']
 		forum = dataJSON['forum']
 	except KeyError:
-		return	jsonify(code = 3,	response = 'Missing parameters')
+		return	jsonify(code = 3, response = 'Missing parameters')
 
 	parent = dataJSON.get('parent', None)
 	isApproved = dataJSON.get('isApproved', False)
@@ -50,7 +50,7 @@ def postCreate():
 		'user' : user
 	}
 
-	return	jsonify(code = 0,	response = response)
+	return	jsonify(code = 0, response = response)
 
 
 @app.route('/db/api/post/details/', methods=['GET'])
@@ -90,7 +90,7 @@ def postDetails():
 	response['forum'] = row[12]
 	response['user'] = row[13]
 
-	return	jsonify(code = 0,	response = response)
+	return	jsonify(code = 0, response = response)
 
 
 @app.route('/db/api/post/list/', methods=['GET'])

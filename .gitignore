@@ -7,6 +7,7 @@ tp_db.indexed.backup.sql
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
+*.pyc
 
 # C extensions
 *.so

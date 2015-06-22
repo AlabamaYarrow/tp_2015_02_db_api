@@ -1,1 +1,1 @@
-gunicorn --workers=3 --bind 0.0.0.0:8000 wsgi
+gunicorn --workers=3 --bind unix:/home/ivan/workspace/dbapi.sock wsgi

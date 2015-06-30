@@ -3,14 +3,17 @@ from app import app
 
 
 def executeQuery(query):
-	result = app.db_engine.execute(query)
-	return result
-
+        conn = app.db_engine.connect()
+        result = conn.execute(query)
+        conn.close()
+        return result
 
 
 def executeQueryData(query, data):
-	result = app.db_engine.execute(query, data)
-	return result
+        conn = app.db_engine.connect()
+        result = conn.execute(query, data)
+        conn.close()
+        return result
 
 
 def getFollowersList(email):

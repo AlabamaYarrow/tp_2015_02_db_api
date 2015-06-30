@@ -1,19 +1,16 @@
 from flask import g
-import MySQLdb
+from app import app
 
 
 def executeQuery(query):
-	cur = g.db_conn.cursor()
-	cur.execute(query)
-	g.db_conn.commit()
-	return cur
+	result = app.db_engine.execute(query)
+	return result
+
 
 
 def executeQueryData(query, data):
-	cur = g.db_conn.cursor()
-	cur.execute(query, data)
-	g.db_conn.commit()
-	return cur
+	result = app.db_engine.execute(query, data)
+	return result
 
 
 def getFollowersList(email):
@@ -24,7 +21,11 @@ def getFollowersList(email):
 	rows = executeQueryData(query, data).fetchall()
 	if not rows:
 		return list()
-	return rows[0]
+	followslist = list()
+	for row in rows[0]:
+		followslist.append(row)
+
+	return followslist
 
 
 def getFollowingList(email):
@@ -35,7 +36,11 @@ def getFollowingList(email):
 	rows = executeQueryData(query, data).fetchall()
 	if not rows:
 	    return list()
-	return rows[0]
+	followslist = list()
+	for row in rows[0]:
+		followslist.append(row)
+	
+	return followslist
 
 
 def getPostList(user='', forum='', thread='', postId='', since='', limit=-1, \
@@ -201,24 +206,6 @@ def postsInThreadDecrement(threadId):
 	query = "UPDATE thread SET posts = posts - 1 WHERE id = %s;"
 	data = (threadId,)
 	executeQueryData(query, data)
-
-
-def getFollowerList(user):
-	query = "SELECT follower FROM follower WHERE following = %s;"
-	data = (user,)
-	rows = executeQueryData(query, data).fetchall()
-	if not rows:
-		return list()
-	return rows[0]
-
-
-def getFollowingList(user):
-	query = "SELECT following FROM follower WHERE follower = %s;"
-	data = (user,)
-	rows = executeQueryData(query, data).fetchall()
-	if not rows:
-		return list()
-	return rows[0]
 
 
 def getSubscribedThreadsList(user):

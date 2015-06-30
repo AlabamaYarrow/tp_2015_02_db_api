@@ -1,9 +1,9 @@
 from app import app
 from flask import g, request, jsonify
-import MySQLdb
 import json
 from utils import *
 
+from sqlalchemy.exc import IntegrityError
 
 @app.route('/db/api/user/create/', methods=['POST'])
 def userCreate():	
@@ -22,7 +22,7 @@ def userCreate():
 				 VALUES (%s, %s, %s, %s, %s)" 
 		data = (name, about, username, email, int(isAnonymous)) 
 		cur = executeQueryData(query, data)
-	except MySQLdb.IntegrityError: 
+	except IntegrityError: 
 		return jsonify(code = 5, response = 'User exists')
 
 	response = {
@@ -50,7 +50,7 @@ def userDetails():
 	response['followers'] = getFollowersList(user)
 	response['following'] = getFollowingList(user)
 	response['subscriptions'] = getSubscribedThreadsList(user)
-		
+
 	return	jsonify(code = 0, response = response)
 
 

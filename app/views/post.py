@@ -1,6 +1,8 @@
 from app import app
 from flask import g, request, jsonify
-import MySQLdb
+
+from sqlalchemy.exc import IntegrityError
+
 from utils import *
 
 
@@ -32,7 +34,7 @@ def postCreate():
 		cur = executeQueryData(query, data)
 		id = cur.lastrowid
 		postsInThreadIncrement(thread)
-	except MySQLdb.IntegrityError: 
+	except IntegrityError: 
 		return	jsonify(code = 5, response = 'Already exists')
 
 	response = {

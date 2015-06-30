@@ -1,8 +1,9 @@
 from app import app
 from flask import g, request, jsonify
-import MySQLdb
 import json
 from utils import *
+
+from sqlalchemy.exc import IntegrityError
 
 
 @app.route('/db/api/forum/create/', methods=['POST'])
@@ -21,7 +22,7 @@ def forumCreate():
 		data = (name, short_name, user) 
 		cur = executeQueryData(query, data)
 		id = cur.lastrowid
-	except MySQLdb.IntegrityError: 
+	except IntegrityError: 
 		query = "SELECT id FROM forum \
 				WHERE name= %s OR short_name = %s"
 		data = (name, short_name) 

@@ -1,8 +1,6 @@
 # Database files
-tp_db.backup.sql
-tp_db.backup.sql.gz
-tp_db.indexed.backup.sql
-
+*.backup.sql
+*.backup.sql.gz
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

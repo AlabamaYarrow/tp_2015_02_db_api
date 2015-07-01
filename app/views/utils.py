@@ -2,18 +2,28 @@ from flask import g
 from app import app
 
 
+# def executeQuery(query):
+# 	result = app.db_engine.execute(query)
+# 	return result
+
+
+# def executeQueryData(query, data):
+# 	result = app.db_engine.execute(query, data)
+# 	return result
+
+
 def executeQuery(query):
-        conn = app.db_engine.connect()
-        result = conn.execute(query)
-        conn.close()
-        return result
+	cur = g.db_conn.cursor()
+	cur.execute(query)
+	g.db_conn.commit()
+	return cur
 
 
 def executeQueryData(query, data):
-        conn = app.db_engine.connect()
-        result = conn.execute(query, data)
-        conn.close()
-        return result
+	cur = g.db_conn.cursor()
+	cur.execute(query, data)
+	g.db_conn.commit()
+	return cur
 
 
 def getFollowersList(email):

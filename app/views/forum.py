@@ -3,7 +3,8 @@ from flask import g, request, jsonify
 import json
 from utils import *
 
-from sqlalchemy.exc import IntegrityError
+from MySQLdb import IntegrityError
+#from sqlalchemy.exc import IntegrityError
 
 
 @app.route('/db/api/forum/create/', methods=['POST'])

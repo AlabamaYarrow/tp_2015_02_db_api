@@ -1,7 +1,8 @@
 from app import app
 from flask import g, request, jsonify
 
-from sqlalchemy.exc import IntegrityError
+from MySQLdb import IntegrityError
+#from sqlalchemy.exc import IntegrityError
 
 from utils import *
 
